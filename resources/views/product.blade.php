@@ -82,10 +82,14 @@
             $('#datatable_product').DataTable({
                 order: [[4, 'desc']],
 
+                "createdRow": function( row, data, dataIndex ) {
+                    if ( data[6] == "" ) {
+                        $(row).hassClass( 'tabledit-toolbar-column' ).text() = "Action";
+                    }
+                },
+
                 footerCallback: function (row, data, start, end, display) {
                     var api = this.api();
-
-                    $(api.column(6).footer()).html('Action');
         
                     // Remove the formatting to get integer data for summation
                     var intVal = function (i) {
@@ -113,6 +117,17 @@
                 },
             });
 
+            $('#datatable_product thead tr th').each(function() {
+                if ($(this).hasClass("tabledit-toolbar-column")) {
+			        $(this).html('Action');
+			    }
+            });
+
+            $('#datatable_product tfoot tr td').each(function() {
+                $(this).replaceWith('<th class="tabledit-toolbar-column">' + $(this).text() + '</th>');
+                $(this).html('Action');
+            });
+            
             $(function () {
                 $.ajaxSetup({
                     headers:{
@@ -166,19 +181,6 @@
                             $('#datatable-buttons').ajax.reload();
                         }
                     }
-                });
-            });
-
-            $('#datatable_product thead tr th').each(function() {
-                if ($(this).hasClass("tabledit-toolbar-column")) {
-			        $(this).html('Action');
-			    }
-            });
-
-            $('#datatable_product tfoot tr').each(function(index, tr) {
-                $(tr).find('td').each(function(index, td) {
-                    console.log(td)
-                    $(this).html('<th class="tabledit-toolbar-column">Action</th>');
                 });
             });
         });
