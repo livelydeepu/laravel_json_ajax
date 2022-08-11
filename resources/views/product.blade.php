@@ -5,6 +5,7 @@
 	<link rel="stylesheet" type="text/css" href="{{asset('bootstrap/css/dataTables.bootstrap5.min.css')}}" />
 	<link rel="stylesheet" type="text/css" href="{{asset('bootstrap/css/responsive.bootstrap5.min.css')}}" />
 	<link rel="stylesheet" type="text/css" href="{{asset('bootstrap/css/buttons.bootstrap5.min.css')}}" />
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
 @endsection
 
 @section('content')
@@ -23,6 +24,7 @@
                         <table id="datatable_product" class="table table-bordered">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th>Id</th>
                                     <th>Product Name</th>
                                     <th>Quantity</th>
@@ -31,13 +33,19 @@
                                     <th>Total Value</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tablecontents">
                                 @if(count($products))
                                 @foreach($products as $product)
                                 <?php
                                     $total_value = (int)(json_decode($product->data)->quantity_in_stock)*(int)(json_decode($product->data)->price_per_item);
                                 ?>
-                                <tr>
+                                <tr class="row1" data-id="{{$product['id']}}">
+                                    <td>
+                                        <div style="color:rgb(124,77,255); padding-left: 10px; float: left; font-size: 20px; cursor: pointer;" title="change display order">
+                                            <i class="fa fa-ellipsis-v"></i>
+                                            <i class="fa fa-ellipsis-v"></i>
+                                        </div>
+                                    </td>
                                     <td>{{$product['id']}}</td>
                                     <td>{{json_decode($product->data)->product_name}}</td>
                                     <td>{{json_decode($product->data)->quantity_in_stock}}</td>
@@ -50,6 +58,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
+                                    <th>#</th>
                                     <th>Id</th>
                                     <th>Product Name</th>
                                     <th>Quantity</th>
@@ -76,7 +85,9 @@
     <script type="text/javascript" src="{{asset('bootstrap/js/responsive.bootstrap5.min.js')}}"></script>
     <script type="text/javascript" src="{{asset('bootstrap/js/dataTables.buttons.min.js')}}"></script>
     <script type="text/javascript" src="{{asset('bootstrap/js/buttons.bootstrap5.min.js')}}"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script type="text/javascript" src="{{asset('bootstrap/js/jquery.tabledit.min.js')}}"></script>
+    
 	<script type="text/javascript">
 		$(document).ready(function(){
             $('#datatable_product').DataTable({
@@ -182,6 +193,44 @@
                         }
                     }
                 });
+            });
+
+            $(function () {
+                $("#datatable_product").sortable({
+                    items: "tr",
+                    cursor: 'move',
+                    opacity: 0.6,
+                    update: function() {
+                        sendProductToServer();
+                    }
+                });
+
+                function sendProductToServer() {
+                    var product = [];
+                    $('tr.row1').each(function(index,element) {
+                        product.push({
+                            id: $(this).attr('data-id'),
+                            position: index+1
+                        });
+                    });
+
+                    $.ajax({
+                            type: "POST", 
+                            dataType: "json", 
+                            url: "{{ url('product/updateProduct') }}",
+                            data: {
+                            product:product,
+                            _token: '{{csrf_token()}}'
+                        },
+                        success: function(response) {
+                            if (response.status == "success") {
+                                console.log(response);
+                            } else {
+                                console.log(response);
+                            }
+                        }
+                    });
+                }
             });
         });
 	</script>

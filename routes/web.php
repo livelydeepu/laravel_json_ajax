@@ -24,3 +24,4 @@ Route::get('/product/manage/{id}', [ProductController::class, 'manage'])->name('
 Route::post('/product/process', [ProductController::class, 'process'])->name('product.process');
 Route::delete('/product/delete/{id}', [ProductController::class, 'delete'])->name('product.delete');
 Route::post('/product/updateAjax', [ProductController::class, 'updateAjax'])->name('product.updateAjax');
+Route::post('/product/updateProduct',[ProductController::class, 'updateProduct'])->name('product.updateProduct');

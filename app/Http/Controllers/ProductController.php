@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Storage;
+use File;
 
 class ProductController extends Controller
 {
@@ -64,7 +66,13 @@ class ProductController extends Controller
             $msg = 'Product Updated Successfully';
         } else {
             $product = new Product(["data" => json_encode($input)]);
-            $product->save(); 
+            //File::put(public_path(time(). '_products.json'), json_encode($input));
+            if(Storage::disk('public')->exists('products.json')) {
+                Storage::disk('public')->append('products.json', json_encode($input, JSON_PRETTY_PRINT));
+            } else {
+                Storage::disk('public')->put('products.json', json_encode($input, JSON_PRETTY_PRINT));
+            }
+            $product->save();
             $msg = 'Product Created Successfully';
         }       
         return redirect()->route('product')->with('success', $msg);
@@ -101,5 +109,43 @@ class ProductController extends Controller
     		}
     		return response()->json($request);
     	}
+    }
+
+    /**
+     * Update or Delete a product.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response redirect route to show the products
+     */
+    function updateProduct(Request $request) {
+    	if($request->ajax()) {
+    		if($request->action == 'edit') {
+                $product = Product::find($request->id);
+                $input = $request->all();
+                $product->update(["data" => json_encode($input)]); 
+    		}
+    		if($request->action == 'delete') {
+    			$product = Product::find($request->id);
+                $product->delete();
+    		}
+    		return response()->json($request);
+    	}
+
+        if($request->ajax()) {
+            $products = Product::all();
+
+            foreach ($products as $product) {
+                $product->timestamps = false; // To disable update_at field updation
+                $id = $product->id;
+
+                foreach ($request->product as $product) {
+                    if ($product['id'] == $id) {
+                        $product->update(['product' => $product['position']]);
+                    }
+                }
+            }
+        }
+        
+        return response('Update Successfully.', 200);
     }
 }
